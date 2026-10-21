@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>Atmos — Weather Dashboard</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <div class="app-shell">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <a href="#" class="brand">
+        <span class="brand-icon">✳</span>
+        <span>ATOMS<span class="brand-dot">.</span></span>
+      </a>
+
+      <div class="side-label">WORKSPACE</div>
+
+      <nav class="side-nav">
+        <a class="nav-link active" href="#overview">
+          <span>◈</span> Overview
+        </a>
+        <a class="nav-link" href="#hourly">
+          <span>◷</span> Hourly forecast
+        </a>
+        <a class="nav-link" href="#weekly">
+          <span>▦</span> 7-day forecast
+        </a>
+        <a class="nav-link" href="#mapSection">
+          <span>◎</span> Weather explorer
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="side-label">PREFERENCES</div>
+        <button id="themeToggle" class="nav-link full-button">
+          <span id="themeIcon">☾</span>
+          <span id="themeText">Light appearance</span>
+        </button>
+
+        <div class="sidebar-note">
+          <span class="live-dot"></span>
+          <span>Live forecast data</span>
+        </div>
+        <p class="sidebar-credit">Powered by Open-Meteo</p>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">WEATHER INTELLIGENCE</p>
+          <h1>Your sky, simplified.</h1>
+        </div>
+
+        <div class="top-actions">
+          <button id="locationButton" class="outline-button">
+            <span>⌖</span> My location
+          </button>
+
+          <form id="searchForm" class="search-form">
+            <span>⌕</span>
+            <input id="cityInput" type="text" placeholder="Search city..." autocomplete="off" required />
+            <button type="submit" aria-label="Search city">→</button>
+          </form>
+        </div>
+      </header>
+
+      <div id="statusMessage" class="status-message" role="status">
+        Loading weather data...
+      </div>
+
+      <!-- Current weather hero -->
+      <section id="overview" class="hero-grid">
+        <article class="hero-card panel">
+          <div class="hero-top">
+            <div>
+              <p class="eyebrow">CURRENT CONDITIONS</p>
+              <h2 id="currentCity">Chennai, India</h2>
+              <p id="currentDate" class="muted">Loading local time...</p>
+            </div>
+            <span class="live-pill"><span class="live-dot"></span> LIVE</span>
+          </div>
+
+          <div class="hero-weather">
+            <div>
+              <div id="currentTemp" class="current-temp">--<span>°</span></div>
+              <p id="currentDescription" class="weather-description">Getting your forecast</p>
+              <p class="feels-line">Feels like <strong id="feelsLike">--°C</strong></p>
+            </div>
+            <div id="currentIcon" class="hero-weather-icon">🌤️</div>
+          </div>
+
+          <div class="hero-footer">
+            <div>
+              <span class="footer-symbol">↑</span>
+              <span>High <strong id="todayHigh">--°</strong></span>
+            </div>
+            <div>
+              <span class="footer-symbol">↓</span>
+              <span>Low <strong id="todayLow">--°</strong></span>
+            </div>
+            <div>
+              <span class="footer-symbol">☀</span>
+              <span>UV <strong id="uvIndex">--</strong></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="visual-card panel">
+          <div class="visual-orbit orbit-one"></div>
+          <div class="visual-orbit orbit-two"></div>
+          <div class="sun-visual">☀</div>
+          <div class="visual-cloud cloud-one">☁</div>
+          <div class="visual-cloud cloud-two">☁</div>
+          <div class="visual-caption">
+            <span class="eyebrow">YOUR LOCAL SKY</span>
+            <strong id="visualCaption">A new day, a new forecast.</strong>
+            <span id="sunsetCaption">Sunset information loading...</span>
+          </div>
+          <div class="visual-stars">✦　·　✧　·　✦</div>
+        </article>
+      </section>
+
+      <!-- Weather metrics -->
+      <section class="metrics-grid">
+        <article class="metric-card panel">
+          <div class="metric-top"><span>Humidity</span><span class="metric-icon">◌</span></div>
+          <strong id="humidity">--<small>%</small></strong>
+          <div class="meter"><span id="humidityMeter"></span></div>
+          <p>Relative air moisture</p>
+        </article>
+
+        <article class="metric-card panel">
+          <div class="metric-top"><span>Wind speed</span><span class="metric-icon">≋</span></div>
+          <strong id="windSpeed">--<small> km/h</small></strong>
+          <p id="windDirection">Wind direction unavailable</p>
+        </article>
+
+        <article class="metric-card panel">
+          <div class="metric-top"><span>Pressure</span><span class="metric-icon">◉</span></div>
+          <strong id="pressure">--<small> hPa</small></strong>
+          <p>Sea-level atmospheric pressure</p>
+        </article>
+
+        <article class="metric-card panel">
+          <div class="metric-top"><span>Visibility</span><span class="metric-icon">◎</span></div>
+          <strong id="visibility">--<small> km</small></strong>
+          <p>Estimated horizontal visibility</p>
+        </article>
+      </section>
+
+      <!-- Hourly forecast -->
+      <section id="hourly" class="section-block panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PLAN YOUR DAY</p>
+            <h2>Hourly forecast</h2>
+          </div>
+          <span id="hourlyDate" class="section-note">Next 24 hours</span>
+        </div>
+        <div id="hourlyForecast" class="hourly-list">
+          <p class="muted">Loading hourly forecast...</p>
+        </div>
+      </section>
+
+      <!-- Seven day forecast -->
+      <section id="weekly" class="section-block panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">LOOK AHEAD</p>
+            <h2>7-day forecast</h2>
+          </div>
+          <span class="section-note">Select a day to explore</span>
+        </div>
+
+        <div id="weeklyForecast" class="weekly-list">
+          <p class="muted">Loading weekly forecast...</p>
+        </div>
+      </section>
+
+      <!-- Interactive map -->
+      <section id="mapSection" class="section-block panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">EXPLORE THE CONDITIONS</p>
+            <h2>Weather explorer</h2>
+          </div>
+          <span id="mapDateLabel" class="section-note">Select a day</span>
+        </div>
+
+        <div id="daySelector" class="day-selector"></div>
+
+        <div class="map-toolbar">
+          <div>
+            <label for="mapLayer">Forecast metric</label>
+            <select id="mapLayer">
+              <option value="temperature">Temperature</option>
+              <option value="rain">Rain probability</option>
+              <option value="wind">Wind speed</option>
+            </select>
+          </div>
+
+          <div class="map-reading">
+            <span id="mapWeatherIcon">🌤️</span>
+            <div>
+              <strong id="mapWeatherTemp">--°C</strong>
+              <small id="mapWeatherDescription">Choose a day and time</small>
+            </div>
+          </div>
+        </div>
+
+        <div id="weatherMap" class="weather-map"></div>
+
+        <div class="map-time">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">TRAVEL THROUGH TIME</p>
+              <h2 id="selectedTime">12:00</h2>
+            </div>
+            <span class="section-note">Forecast hour</span>
+          </div>
+
+          <input id="timeSlider" type="range" min="0" max="23" value="12" aria-label="Choose forecast hour" />
+
+          <div class="time-labels">
+            <span>00:00</span>
+            <span>06:00</span>
+            <span>12:00</span>
+            <span>18:00</span>
+            <span>23:00</span>
+          </div>
+        </div>
+
+        <p class="map-disclaimer">
+          The map shows the selected city's forecast marker, not a live radar overlay.
+          Map data © OpenStreetMap contributors.
+        </p>
+      </section>
+
+      <!-- Sunrise and sunset -->
+      <section class="sun-grid">
+        <article class="sun-card panel">
+          <div class="sun-card-icon sunrise-icon">☀</div>
+          <div>
+            <p class="eyebrow">SUNRISE</p>
+            <h2 id="sunrise">--:--</h2>
+            <p class="muted">First light of the day</p>
+          </div>
+        </article>
+
+        <article class="sun-card panel">
+          <div class="sun-card-icon sunset-icon">☾</div>
+          <div>
+            <p class="eyebrow">SUNSET</p>
+            <h2 id="sunset">--:--</h2>
+            <p class="muted">End of daylight</p>
+          </div>
+        </article>
+      </section>
+
+      <footer class="page-footer">
+        <span>Atmos Weather Dashboard</span>
+        <span>Forecast data: <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo</a></span>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
